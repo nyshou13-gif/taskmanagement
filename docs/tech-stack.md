@@ -1,4 +1,4 @@
-# タスク管理アプリ 技術スタック
+# TaskBoard 技術スタック
 
 [要件定義書](requirements.md) に戻る
 

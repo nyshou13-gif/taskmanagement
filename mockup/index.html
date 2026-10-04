@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskBoard（モック）</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>TaskBoard</h1>
+  </header>
+
+  <main id="board" class="board">
+    <!-- カラムはJSで生成 -->
+  </main>
+
+  <!-- タスク作成／編集モーダル -->
+  <div id="task-modal" class="modal-overlay hidden">
+    <form id="task-form" class="modal" novalidate>
+      <h2 id="task-modal-title">タスクを作成</h2>
+
+      <label class="field-label" for="task-title">タイトル <span class="required">必須</span></label>
+      <input type="text" id="task-title" maxlength="120">
+      <div class="field-error" id="task-title-error"></div>
+
+      <label class="field-label" for="task-desc">説明</label>
+      <textarea id="task-desc" rows="4"></textarea>
+
+      <fieldset class="field-group">
+        <legend class="field-label">優先度</legend>
+        <label class="radio"><input type="radio" name="priority" value="high"> 高</label>
+        <label class="radio"><input type="radio" name="priority" value="mid" checked> 中</label>
+        <label class="radio"><input type="radio" name="priority" value="low"> 低</label>
+      </fieldset>
+
+      <label class="field-label" for="task-due">期限</label>
+      <input type="date" id="task-due">
+
+      <div class="modal-actions">
+        <button type="button" id="task-delete-btn" class="danger-btn hidden">削除</button>
+        <div class="modal-actions-right">
+          <button type="button" id="task-cancel-btn" class="ghost-btn">キャンセル</button>
+          <button type="submit" id="task-save-btn" class="primary-btn">保存</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- 削除確認ダイアログ -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>タスクを削除しますか？</h2>
+      <p class="confirm-target">「<span id="confirm-task-title"></span>」</p>
+      <p class="confirm-warning">この操作は取り消せません。</p>
+      <div class="modal-actions">
+        <span></span>
+        <div class="modal-actions-right">
+          <button type="button" id="confirm-cancel-btn" class="ghost-btn">キャンセル</button>
+          <button type="button" id="confirm-ok-btn" class="danger-btn">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
