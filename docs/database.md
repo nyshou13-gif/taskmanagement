@@ -37,23 +37,23 @@ erDiagram
 
 | カラム名 | 型 | 制約 | 説明 |
 |----------|-----|------|------|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | カラムID |
-| title | TEXT | NOT NULL | カラム名（未着手 / 作業中 / 完了） |
+| id | BIGINT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | カラムID |
+| title | VARCHAR(50) | NOT NULL | カラム名（未着手 / 作業中 / 完了） |
 | position | INTEGER | NOT NULL | 画面上の表示順（左から順） |
 
 **tasks**
 
 | カラム名 | 型 | 制約 | 説明 |
 |----------|-----|------|------|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | タスクID |
-| column_id | INTEGER | NOT NULL, FOREIGN KEY → columns.id | 所属カラムID |
-| title | TEXT | NOT NULL | タスクタイトル（100文字以内） |
+| id | BIGINT | PRIMARY KEY, GENERATED ALWAYS AS IDENTITY | タスクID |
+| column_id | BIGINT | NOT NULL, FOREIGN KEY → columns.id | 所属カラムID |
+| title | VARCHAR(100) | NOT NULL | タスクタイトル（100文字以内） |
 | description | TEXT | NOT NULL DEFAULT '' | 説明 |
 | priority | INTEGER | NOT NULL DEFAULT 2, CHECK (priority IN (1, 2, 3)) | 優先度（1:低 / 2:中 / 3:高） |
 | due_date | DATE | NULL可 | 期限日 |
 | position | INTEGER | NOT NULL | カラム内の表示順 |
-| created_at | DATETIME | NOT NULL DEFAULT CURRENT_TIMESTAMP | 作成日時 |
-| updated_at | DATETIME | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新日時 |
+| created_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新日時 |
 
 ## 3. API仕様（概要）
 
