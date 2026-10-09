@@ -4,3 +4,13 @@ server:
 spring:
   application:
     name: taskboard
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/taskboard}
+    username: ${DB_USER:taskboard}
+    password: ${DB_PASSWORD:taskboard}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
