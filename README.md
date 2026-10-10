@@ -14,3 +14,7 @@ curl http://localhost:8080/api/board    # 3カラム（未着手/作業中/完�
 ```
 
 DB接続先は環境変数 `DB_URL` / `DB_USER` / `DB_PASSWORD` で上書き可能（既定は docker-compose の値）。
+
+## 開発フロー
+
+Issue作成 → `<type>/<issue番号>-<説明>` ブランチ → PR → squash merge。master への直接pushは禁止。詳細は [CLAUDE.md](CLAUDE.md) を参照。
