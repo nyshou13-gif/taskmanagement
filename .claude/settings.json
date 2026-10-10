@@ -54,6 +54,12 @@
       "PowerShell(Write-Output*)"
     ],
     "deny": [
+      "Bash(git push origin master*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:master*)",
+      "PowerShell(git push origin master*)",
+      "PowerShell(git push origin main*)",
+      "PowerShell(git push origin HEAD:master*)",
       "Bash(rm -rf*)",
       "Bash(rm -fr*)",
       "Bash(rm -r *)",
