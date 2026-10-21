@@ -1,0 +1,28 @@
+name: Close issue on merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  close-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close the issue named in the branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # ブランチ名: <type>/<issue番号>-<説明>
+          if [[ "$BRANCH" =~ ^[a-z]+/([0-9]+)- ]]; then
+            issue="${BASH_REMATCH[1]}"
+            gh issue close "$issue" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "PR #${PR_NUMBER} のマージにより自動クローズ"
+          else
+            echo "No issue number in branch name: $BRANCH"
+          fi
