@@ -86,7 +86,7 @@ ER図・テーブル定義・API仕様の詳細は [データベース設計](da
 
 ## 8. 技術スタック
 
-フロントエンドはReact + TypeScript + Vite + dnd-kit（Next.jsは対象外）、バックエンドはJava + Spring Boot、DBはPostgreSQLを使用する。
+フロントエンドはReact + TypeScript + Vite + Tailwind CSS + dnd-kit（Next.jsは対象外）、バックエンドはJava + Spring Boot、DBはPostgreSQLを使用する。
 選定理由の詳細は [技術スタック](tech-stack.md) を参照。
 
 ## 9. 今後の拡張候補（MVP後）
