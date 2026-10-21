@@ -14,3 +14,11 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  flyway:
+    locations: classpath:db/migration,classpath:db/testdata

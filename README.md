@@ -2,13 +2,13 @@
 
 ## バックエンドの起動
 
-前提: JDK 25、Maven、Docker
+前提: JDK 25、Docker（Gradle は同梱の Gradle Wrapper を使うため、インストール不要）
 
 ```
 docker compose up -d                    # PostgreSQL 16 を起動（healthy になるまで待つ）
 cd backend
-mvn test                                # Testcontainers を使うため Docker が必要
-mvn spring-boot:run                     # 起動時に Flyway がテーブル作成・初期データ投入
+./gradlew test                          # Testcontainers を使うため Docker が必要（Windows は gradlew.bat）
+./gradlew bootRun                       # 起動時に Flyway がテーブル作成・初期データ投入
 curl http://localhost:8080/api/health   # {"status":"ok"}
 curl http://localhost:8080/api/board    # 3カラム（未着手/作業中/完了）
 ```
