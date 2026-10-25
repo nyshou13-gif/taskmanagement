@@ -51,7 +51,11 @@
       "PowerShell(Get-Content*)",
       "PowerShell(Get-Location)",
       "PowerShell(New-Item -ItemType Directory*)",
-      "PowerShell(Write-Output*)"
+      "PowerShell(Write-Output*)",
+      "PowerShell(powershell -File scripts/start-servers.ps1*)",
+      "PowerShell(powershell -File scripts/stop-servers.ps1*)",
+      "Bash(powershell -File scripts/start-servers.ps1*)",
+      "Bash(powershell -File scripts/stop-servers.ps1*)"
     ],
     "deny": [
       "Bash(git push origin master*)",
@@ -94,7 +98,28 @@
       "PowerShell(git branch -D*)",
       "PowerShell(git branch -d *)",
       "PowerShell(Format-Volume*)",
-      "PowerShell(Set-Content*)"
+      "PowerShell(Set-Content*)",
+      "Bash(*--port*)",
+      "Bash(*server.port*)",
+      "Bash(*SERVER_PORT*)",
+      "Bash(*PORT=*)",
+      "PowerShell(*--port*)",
+      "PowerShell(*server.port*)",
+      "PowerShell(*SERVER_PORT*)",
+      "PowerShell(*PORT=*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -File scripts/check-port-rule.ps1"
+          }
+        ]
+      }
     ]
   }
 }

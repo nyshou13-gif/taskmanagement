@@ -34,3 +34,10 @@
 
 ## 6. 作業の流れ
 Issue作成 → ブランチ作成 → 実装・コミット → push → PR作成 → ユーザー確認後に squash merge
+
+## 7. サーバー起動とポート（厳守）
+- ポートは固定: **backend = 8080 / frontend = 5173**（Vite の proxy・フロントがこの値を前提にしており、別ポートでは動かない）。
+- ポートが競合した場合は、**占有しているプロセスを停止して、必ず上記の既定ポートで起動する**。別ポートでの一時起動・自動退避は禁止。
+- `--port` / `-p` / `server.port` / `SERVER_PORT` / `PORT=` などによるポート指定起動は禁止（`.claude/settings.json` の deny と hook でブロックされる）。
+- 起動は `scripts/start-servers.ps1`、停止は `scripts/stop-servers.ps1` を使う（スキル `start-servers`）。
+- 停止してよいのは 8080 と 5173 の占有プロセスのみ。DB(5432) など他のポートのプロセスは停止しない。
