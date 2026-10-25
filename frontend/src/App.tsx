@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -13,7 +13,9 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { ColumnView } from './ColumnView'
 import { TaskCardView } from './TaskCard'
-import type { Column, Task } from './types'
+import { SearchBar } from './SearchBar'
+import { fetchBoard, groupByColumn, searchTasks } from './api'
+import { EMPTY_SEARCH, hasSearch, type Column, type Task, type TaskDetail } from './types'
 
 const columnIdOf = (id: string | number) =>
   typeof id === 'string' && id.startsWith('column-') ? Number(id.slice(7)) : null
@@ -29,20 +31,62 @@ export default function App() {
   const [active, setActive] = useState<Task | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
+  const [search, setSearch] = useState(EMPTY_SEARCH)
+  const [results, setResults] = useState<TaskDetail[] | null>(null)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const searching = hasSearch(search)
+
   useEffect(() => {
-    fetch('/api/board')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    const ctrl = new AbortController()
+    fetchBoard(ctrl.signal)
       .then(setColumns)
-      .catch((e) => setError(String(e.message ?? e)))
+      .catch((e) => !ctrl.signal.aborted && setError(String(e.message ?? e)))
+    return () => ctrl.abort()
   }, [])
 
+  // 検索条件が変わったら300msデバウンスして検索し、古いリクエストは破棄する
+  useEffect(() => {
+    if (!searching) {
+      setResults(null)
+      setSearchError(null)
+      setLoading(false)
+      return
+    }
+    const ctrl = new AbortController()
+    setLoading(true)
+    const timer = setTimeout(() => {
+      searchTasks(search, ctrl.signal)
+        .then((tasks) => {
+          setResults(tasks)
+          setSearchError(null)
+          setLoading(false)
+        })
+        .catch((e) => {
+          if (ctrl.signal.aborted) return
+          setSearchError(String(e.message ?? e))
+          setLoading(false)
+        })
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      ctrl.abort()
+    }
+  }, [search, searching])
+
+  const displayed = useMemo(
+    () => (searching && results ? groupByColumn(columns, results) : columns),
+    [searching, results, columns],
+  )
+
   const onDragStart = (e: DragStartEvent) => {
+    if (searching) return
     setActive(columns.flatMap((c) => c.tasks).find((t) => t.id === e.active.id) ?? null)
   }
 
   // ドラッグ中に別カラムへ入ったら、タスクをそのカラムへ移す
   const onDragOver = ({ active, over }: DragOverEvent) => {
-    if (!over) return
+    if (!over || searching) return
     setColumns((prev) => {
       const from = findColumn(prev, active.id)
       const to = findColumn(prev, over.id)
@@ -65,7 +109,7 @@ export default function App() {
   // 同一カラム内の並び替えを確定する
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     setActive(null)
-    if (!over) return
+    if (!over || searching) return
     setColumns((prev) => {
       const col = findColumn(prev, active.id)
       if (!col || col.id !== findColumn(prev, over.id)?.id) return prev
@@ -81,7 +125,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <h1 className="mb-6 text-2xl font-bold">TaskBoard</h1>
+      <SearchBar value={search} onChange={setSearch} />
       {error && <p className="text-red-600">ボードの取得に失敗しました: {error}</p>}
+      {searchError && <p className="text-red-600">検索に失敗しました: {searchError}</p>}
+      {searching && loading && <p className="mb-3 text-sm text-gray-500">検索中…</p>}
+      {searching && !loading && !searchError && results?.length === 0 && (
+        <p className="mb-3 text-sm text-gray-500">条件に一致するタスクはありません</p>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -91,8 +141,8 @@ export default function App() {
         onDragCancel={() => setActive(null)}
       >
         <div className="flex items-start gap-4 overflow-x-auto">
-          {columns.map((c) => (
-            <ColumnView key={c.id} column={c} />
+          {displayed.map((c) => (
+            <ColumnView key={c.id} column={c} disabled={searching} />
           ))}
         </div>
         <DragOverlay>{active && <TaskCardView task={active} dragging />}</DragOverlay>
