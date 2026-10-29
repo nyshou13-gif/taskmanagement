@@ -1,5 +1,6 @@
 ﻿# PreToolUse hook: 既定ポート(8080/5173)以外を指定してサーバーを起動するコマンドをブロックする。
 # stdin に hook の JSON が渡される。exit 2 でブロック（stderr がClaudeに返る）。
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $command = [string]$payload.tool_input.command
 
