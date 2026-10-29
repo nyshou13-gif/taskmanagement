@@ -116,7 +116,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -File \"$CLAUDE_PROJECT_DIR/scripts/check-port-rule.ps1\""
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/scripts/check-port-rule.ps1\""
           }
         ]
       }
