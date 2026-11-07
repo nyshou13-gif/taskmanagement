@@ -26,7 +26,7 @@ Trello風のシンプルなタスク管理アプリ。「未着手」「作業�
 | フロントエンド | React 19 / TypeScript 7 / Vite 8 / Tailwind CSS 4 / dnd-kit |
 | バックエンド | Java 25 / Spring Boot 4.0 / Spring Data JPA / Flyway / Gradle 9.8 |
 | データベース | PostgreSQL 16（Docker Compose で起動） |
-| テスト | JUnit 5 / Spring Boot Test / Testcontainers |
+| テスト | JUnit 6 / Spring Boot Test / Testcontainers |
 
 バージョンと選定理由は [技術スタック](docs/tech-stack.md) を参照。
 

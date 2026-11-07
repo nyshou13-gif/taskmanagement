@@ -32,7 +32,7 @@ Next.js は今回の対象外とし、フロントエンドは Vite によるSPA
 | バリデーション | Spring Validation（Bean Validation） | タイトル100文字以内・優先度の範囲などの入力チェックを、アノテーションで宣言的に実装できる |
 | DBマイグレーション | Flyway 11.14 | テーブル定義と初期データ（3カラム）をSQLファイルでバージョン管理できる |
 | ビルドツール | Gradle 9.8（Groovy DSL） | 講義と同じツールで進められる。設定が短く書け、差分ビルドで速い。Gradle Wrapper を同梱するため各自のインストールが不要 |
-| テスト | JUnit 5 / Spring Boot Test / Testcontainers 2.0 | APIの結合テストを、実PostgreSQL（コンテナ）に対して実行できる |
+| テスト | JUnit 6 / Spring Boot Test / Testcontainers 2.0 | APIの結合テストを、実PostgreSQL（コンテナ）に対して実行できる |
 
 ## 3. データベース・インフラ
 
