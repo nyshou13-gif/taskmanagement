@@ -40,7 +40,7 @@ Next.js は今回の対象外とし、フロントエンドは Vite によるSPA
 |------|----------|----------|
 | RDBMS（データベース） | PostgreSQL 16 | 指定DB。外部キー・CHECK制約・トランザクションが堅牢で、将来の複数ユーザー化・複数ボード化にも耐えられる |
 | JDBCドライバ | PostgreSQL JDBC Driver 42.7 | Spring Boot（HikariCP）から接続するための標準ドライバ |
-| ローカル実行環境 | Docker Compose（Docker 29） | PostgreSQLをコンテナで起動し、各自の環境にDBを直接インストールせず同一構成で開発できる |
+| ローカル実行環境 | Docker Compose 5.5（Docker 29） | PostgreSQLをコンテナで起動し、各自の環境にDBを直接インストールせず同一構成で開発できる |
 
 ## 4. 開発ツール
 
