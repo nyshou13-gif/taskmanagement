@@ -13,3 +13,15 @@ export type Column = {
   position: number
   tasks: Task[]
 }
+
+export type TaskDetail = Task & { columnId: number }
+
+export type SearchParams = {
+  q: string
+  priority: string
+  dueBefore: string
+}
+
+export const EMPTY_SEARCH: SearchParams = { q: '', priority: '', dueBefore: '' }
+
+export const hasSearch = (p: SearchParams) => Object.values(p).some((v) => v.trim() !== '')

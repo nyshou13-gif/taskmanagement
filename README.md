@@ -18,3 +18,15 @@ DB接続先は環境変数 `DB_URL` / `DB_USER` / `DB_PASSWORD` で上書き可�
 ## 開発フロー
 
 Issue作成 → `<type>/<issue番号>-<説明>` ブランチ → PR → squash merge。master への直接pushは禁止。詳細は [CLAUDE.md](CLAUDE.md) を参照。
+
+## フロントエンドの起動
+
+バックエンドを起動した状態で実行する（`/api` は Vite のプロキシ経由で `localhost:8080` に転送される）。
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+http://localhost:5173 を開く。キーワード・優先度・期限で検索すると、結果がボード上に表示される。
