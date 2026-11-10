@@ -25,3 +25,11 @@ export type SearchParams = {
 export const EMPTY_SEARCH: SearchParams = { q: '', priority: '', dueBefore: '' }
 
 export const hasSearch = (p: SearchParams) => Object.values(p).some((v) => v.trim() !== '')
+
+export type NewTask = {
+  columnId: number
+  title: string
+  description: string
+  priority: number
+  dueDate: string | null
+}

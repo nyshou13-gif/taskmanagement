@@ -79,7 +79,13 @@ export default function App() {
     [searching, results, columns],
   )
 
-  const onDragStart = (e: DragStartEvent) => {
+  // 登録したタスクを該当カラムの末尾に追加する
+  const onCreated = ({ columnId, ...task }: TaskDetail) =>
+    setColumns((prev) =>
+      prev.map((c) => (c.id === columnId ? { ...c, tasks: [...c.tasks, { ...task }] } : c)),
+    )
+
+  const onDragStart =(e: DragStartEvent) => {
     if (searching) return
     setActive(columns.flatMap((c) => c.tasks).find((t) => t.id === e.active.id) ?? null)
   }
@@ -142,7 +148,7 @@ export default function App() {
       >
         <div className="flex items-start gap-4 overflow-x-auto">
           {displayed.map((c) => (
-            <ColumnView key={c.id} column={c} disabled={searching} />
+            <ColumnView key={c.id} column={c} disabled={searching} onCreated={onCreated} />
           ))}
         </div>
         <DragOverlay>{active && <TaskCardView task={active} dragging />}</DragOverlay>
