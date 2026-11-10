@@ -1,4 +1,4 @@
-import type { Column, SearchParams, TaskDetail } from './types'
+import type { Column, NewTask, SearchParams, TaskDetail } from './types'
 
 const getJson = async <T>(url: string, signal?: AbortSignal): Promise<T> => {
   const r = await fetch(url, { signal })
@@ -22,3 +22,13 @@ export const groupByColumn = (columns: Column[], tasks: TaskDetail[]): Column[] 
     ...c,
     tasks: tasks.filter((t) => t.columnId === c.id).sort((a, b) => a.position - b.position),
   }))
+
+export const createTask = async (task: NewTask): Promise<TaskDetail> => {
+  const r = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(task),
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}

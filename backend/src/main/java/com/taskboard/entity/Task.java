@@ -45,6 +45,16 @@ public class Task {
     protected Task() {
     }
 
+    public Task(Long columnId, String title, String description, int priority, LocalDate dueDate,
+            int position) {
+        this.columnId = columnId;
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.dueDate = dueDate;
+        this.position = position;
+    }
+
     public Long getId() {
         return id;
     }
