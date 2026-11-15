@@ -32,3 +32,20 @@ export const createTask = async (task: NewTask): Promise<TaskDetail> => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
   return r.json()
 }
+
+const sendJson = async <T>(url: string, body: unknown): Promise<T> => {
+  const r = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}
+
+// 詳細画面からの更新（columnId を変えるとステータス変更になる）
+export const updateTask = (id: number, task: NewTask) => sendJson<TaskDetail>(`/api/tasks/${id}`, task)
+
+// DnD後の列・並び順（position は列内の0始まり）を保存する
+export const moveTask = (id: number, columnId: number, position: number) =>
+  sendJson<TaskDetail>(`/api/tasks/${id}/move`, { columnId, position })

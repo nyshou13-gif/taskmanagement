@@ -21,7 +21,15 @@ export function TaskCardView({ task, dragging }: { task: Task; dragging?: boolea
   )
 }
 
-export function SortableTaskCard({ task, disabled }: { task: Task; disabled?: boolean }) {
+export function SortableTaskCard({
+  task,
+  disabled,
+  onOpen,
+}: {
+  task: Task
+  disabled?: boolean
+  onOpen?: (task: Task) => void
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     disabled,
@@ -33,6 +41,7 @@ export function SortableTaskCard({ task, disabled }: { task: Task; disabled?: bo
       className={`${disabled ? '' : 'cursor-grab touch-none'} ${isDragging ? 'opacity-40' : ''}`}
       {...attributes}
       {...listeners}
+      onClick={() => onOpen?.(task)}
     >
       <TaskCardView task={task} />
     </div>

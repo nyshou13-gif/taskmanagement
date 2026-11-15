@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -14,7 +14,8 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { ColumnView } from './ColumnView'
 import { TaskCardView } from './TaskCard'
 import { SearchBar } from './SearchBar'
-import { fetchBoard, groupByColumn, searchTasks } from './api'
+import { TaskDetailModal } from './TaskDetailModal'
+import { fetchBoard, groupByColumn, moveTask, searchTasks } from './api'
 import { EMPTY_SEARCH, hasSearch, type Column, type Task, type TaskDetail } from './types'
 
 const columnIdOf = (id: string | number) =>
@@ -29,6 +30,8 @@ export default function App() {
   const [columns, setColumns] = useState<Column[]>([])
   const [error, setError] = useState<string | null>(null)
   const [active, setActive] = useState<Task | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const dragOrigin = useRef<{ columnId: number; index: number } | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const [search, setSearch] = useState(EMPTY_SEARCH)
@@ -85,8 +88,39 @@ export default function App() {
       prev.map((c) => (c.id === columnId ? { ...c, tasks: [...c.tasks, { ...task }] } : c)),
     )
 
+  // 詳細画面で保存したタスクを反映する。カラムが変わった場合は移動先の末尾へ移す
+  const onUpdated = ({ columnId, ...task }: TaskDetail) => {
+    setColumns((prev) =>
+      prev.map((c) => {
+        const without = c.tasks.filter((t) => t.id !== task.id)
+        if (c.id !== columnId) return { ...c, tasks: without }
+        const old = c.tasks.findIndex((t) => t.id === task.id)
+        const tasks = [...without]
+        tasks.splice(old >= 0 ? old : tasks.length, 0, task)
+        return { ...c, tasks }
+      }),
+    )
+    setResults((prev) => prev && prev.map((t) => (t.id === task.id ? { ...task, columnId } : t)))
+    setSelectedId(null)
+  }
+
+  const selected = useMemo(() => {
+    for (const c of columns) {
+      const task = c.tasks.find((t) => t.id === selectedId)
+      if (task) return { task, columnId: c.id }
+    }
+    return null
+  }, [columns, selectedId])
+
+  // 保存に失敗したらサーバー上の状態に戻す
+  const reload = () => fetchBoard().then(setColumns).catch(() => {})
+
   const onDragStart =(e: DragStartEvent) => {
     if (searching) return
+    const col = findColumn(columns, e.active.id)
+    dragOrigin.current = col
+      ? { columnId: col.id, index: col.tasks.findIndex((t) => t.id === e.active.id) }
+      : null
     setActive(columns.flatMap((c) => c.tasks).find((t) => t.id === e.active.id) ?? null)
   }
 
@@ -112,20 +146,40 @@ export default function App() {
     })
   }
 
-  // 同一カラム内の並び替えを確定する
+  // ドロップ位置を確定し、列・並び順が変わっていればサーバーへ保存する
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     setActive(null)
-    if (!over || searching) return
-    setColumns((prev) => {
-      const col = findColumn(prev, active.id)
-      if (!col || col.id !== findColumn(prev, over.id)?.id) return prev
-      const oldIndex = col.tasks.findIndex((t) => t.id === active.id)
-      const newIndex = col.tasks.findIndex((t) => t.id === over.id)
-      if (newIndex < 0 || oldIndex === newIndex) return prev
-      return prev.map((c) =>
-        c.id === col.id ? { ...c, tasks: arrayMove(c.tasks, oldIndex, newIndex) } : c,
-      )
+    const origin = dragOrigin.current
+    dragOrigin.current = null
+    if (searching) return
+    let next = columns
+    if (over) {
+      const col = findColumn(columns, active.id)
+      if (col && col.id === findColumn(columns, over.id)?.id) {
+        const oldIndex = col.tasks.findIndex((t) => t.id === active.id)
+        const newIndex = col.tasks.findIndex((t) => t.id === over.id)
+        if (newIndex >= 0 && oldIndex !== newIndex) {
+          next = columns.map((c) =>
+            c.id === col.id ? { ...c, tasks: arrayMove(c.tasks, oldIndex, newIndex) } : c,
+          )
+        }
+      }
+    }
+    setColumns(next)
+    const col = findColumn(next, active.id)
+    if (!col || !origin) return
+    const index = col.tasks.findIndex((t) => t.id === active.id)
+    if (origin.columnId === col.id && origin.index === index) return
+    moveTask(Number(active.id), col.id, index).catch((e) => {
+      setError(`移動の保存に失敗しました: ${String(e.message ?? e)}`)
+      reload()
     })
+  }
+
+  const onDragCancel = () => {
+    setActive(null)
+    dragOrigin.current = null
+    reload()
   }
 
   return (
@@ -144,15 +198,25 @@ export default function App() {
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
-        onDragCancel={() => setActive(null)}
+        onDragCancel={onDragCancel}
       >
         <div className="flex items-start gap-4 overflow-x-auto">
           {displayed.map((c) => (
-            <ColumnView key={c.id} column={c} disabled={searching} onCreated={onCreated} />
+            <ColumnView key={c.id} column={c} disabled={searching} onCreated={onCreated} onOpen={(t) => setSelectedId(t.id)} />
           ))}
         </div>
         <DragOverlay>{active && <TaskCardView task={active} dragging />}</DragOverlay>
       </DndContext>
+      {selected && (
+        <TaskDetailModal
+          key={selected.task.id}
+          task={selected.task}
+          columnId={selected.columnId}
+          columns={columns}
+          onSaved={onUpdated}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   )
 }
