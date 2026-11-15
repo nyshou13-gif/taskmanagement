@@ -29,6 +29,7 @@ const findColumn = (columns: Column[], id: string | number) =>
 export default function App() {
   const [columns, setColumns] = useState<Column[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [active, setActive] = useState<Task | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const dragOrigin = useRef<{ columnId: number; index: number } | null>(null)
@@ -112,10 +113,18 @@ export default function App() {
     return null
   }, [columns, selectedId])
 
-  // 保存に失敗したらサーバー上の状態に戻す
-  const reload = () => fetchBoard().then(setColumns).catch(() => {})
+  // 保存に失敗したらサーバー上の状態に戻す。戻す処理も失敗したら、再読み込みを案内する
+  const reload = (message: string) => {
+    setSaveError(message)
+    fetchBoard()
+      .then(setColumns)
+      .catch(() =>
+        setSaveError(`${message}画面の内容が最新と異なる可能性があるため、ページを再読み込みしてください。`),
+      )
+  }
 
   const onDragStart =(e: DragStartEvent) => {
+    setSaveError(null)
     if (searching) return
     const col = findColumn(columns, e.active.id)
     dragOrigin.current = col
@@ -171,15 +180,14 @@ export default function App() {
     const index = col.tasks.findIndex((t) => t.id === active.id)
     if (origin.columnId === col.id && origin.index === index) return
     moveTask(Number(active.id), col.id, index).catch((e) => {
-      setError(`移動の保存に失敗しました: ${String(e.message ?? e)}`)
-      reload()
+      reload(`カードの移動を保存できませんでした（${String(e.message ?? e)}）。元の位置に戻しました。`)
     })
   }
 
   const onDragCancel = () => {
     setActive(null)
     dragOrigin.current = null
-    reload()
+    reload('')
   }
 
   return (
@@ -187,6 +195,14 @@ export default function App() {
       <h1 className="mb-6 text-2xl font-bold">TaskBoard</h1>
       <SearchBar value={search} onChange={setSearch} />
       {error && <p className="text-red-600">ボードの取得に失敗しました: {error}</p>}
+      {saveError && (
+        <p role="alert" className="mb-3 flex items-center rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+          {saveError}
+          <button type="button" className="ml-auto px-2" aria-label="閉じる" onClick={() => setSaveError(null)}>
+            ×
+          </button>
+        </p>
+      )}
       {searchError && <p className="text-red-600">検索に失敗しました: {searchError}</p>}
       {searching && loading && <p className="mb-3 text-sm text-gray-500">検索中…</p>}
       {searching && !loading && !searchError && results?.length === 0 && (
