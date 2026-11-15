@@ -20,6 +20,7 @@
 ## 4. Pull Request 必須
 - すべての変更は 作業ブランチ → Pull Request → squash merge で master に取り込む。PRを経由しないマージ・反映は禁止。
 - PR本文に `Closes #<issue番号>` を含める（`.github/pull_request_template.md` に従う）。
+- PR本文に「受け入れ要件」欄を必ず入れ、マージ前に確認する項目をチェックリスト（`- [ ]`）で書く。`gh pr create --body-file` ではテンプレートが自動適用されないため、本文に自分で書くこと。
 - PRタイトルは変更内容が分かる1行にする。
 - マージは squash merge のみ。マージ前にユーザーの確認を得る。マージ後のブランチは自動削除される。
 
