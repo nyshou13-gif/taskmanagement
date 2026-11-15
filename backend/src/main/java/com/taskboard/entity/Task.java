@@ -55,6 +55,18 @@ public class Task {
         this.position = position;
     }
 
+    public void update(String title, String description, int priority, LocalDate dueDate) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.dueDate = dueDate;
+    }
+
+    public void moveTo(Long columnId, int position) {
+        this.columnId = columnId;
+        this.position = position;
+    }
+
     public Long getId() {
         return id;
     }
