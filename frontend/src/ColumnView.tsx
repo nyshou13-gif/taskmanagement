@@ -3,16 +3,18 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { NewTaskForm } from './NewTaskForm'
 import { SortableTaskCard } from './TaskCard'
-import type { Column, TaskDetail } from './types'
+import type { Column, Task, TaskDetail } from './types'
 
 export function ColumnView({
   column,
   disabled,
   onCreated,
+  onOpen,
 }: {
   column: Column
   disabled?: boolean
   onCreated: (task: TaskDetail) => void
+  onOpen: (task: Task) => void
 }) {
   const { setNodeRef } = useDroppable({ id: `column-${column.id}`, disabled })
   const [adding, setAdding] = useState(false)
@@ -44,7 +46,7 @@ export function ColumnView({
       <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} className="flex min-h-16 flex-col gap-2">
           {column.tasks.map((t) => (
-            <SortableTaskCard key={t.id} task={t} disabled={disabled} />
+            <SortableTaskCard key={t.id} task={t} disabled={disabled} onOpen={onOpen} />
           ))}
         </div>
       </SortableContext>

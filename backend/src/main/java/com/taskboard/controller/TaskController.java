@@ -1,6 +1,7 @@
 package com.taskboard.controller;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -8,10 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.taskboard.entity.Task;
@@ -42,6 +45,19 @@ public class TaskController {
             String description,
             @Min(1) @Max(3) Integer priority,
             LocalDate dueDate) {
+    }
+
+    /** 詳細画面からの更新。columnId がこれまでと違えば、移動先カラムの末尾へ移す。 */
+    public record UpdateTaskRequest(
+            @NotNull Long columnId,
+            @NotBlank @Size(max = 100) String title,
+            String description,
+            @NotNull @Min(1) @Max(3) Integer priority,
+            LocalDate dueDate) {
+    }
+
+    /** DnD後の配置。position は移動先カラム内の0始まりの並び順。 */
+    public record MoveTaskRequest(@NotNull Long columnId, @NotNull @Min(0) Integer position) {
     }
 
     public record TaskDetail(Long id, Long columnId, String title, String description, int priority,
@@ -75,6 +91,58 @@ public class TaskController {
                 req.description() == null ? "" : req.description(),
                 req.priority() == null ? 2 : req.priority(), req.dueDate(), position);
         return toDetail(taskRepository.save(task));
+    }
+
+    @PutMapping("/api/tasks/{id}")
+    @Transactional
+    public TaskDetail update(@PathVariable Long id, @Valid @RequestBody UpdateTaskRequest req) {
+        Task task = findTask(id);
+        if (!columnRepository.existsById(req.columnId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Column not found");
+        }
+        Long oldColumnId = task.getColumnId();
+        task.update(req.title().trim(), req.description() == null ? "" : req.description(),
+                req.priority(), req.dueDate());
+        if (!oldColumnId.equals(req.columnId())) {
+            task.moveTo(req.columnId(), taskRepository.maxPosition(req.columnId()) + 1);
+            renumber(oldColumnId);
+        }
+        return toDetail(taskRepository.save(task));
+    }
+
+    @PutMapping("/api/tasks/{id}/move")
+    @Transactional
+    public TaskDetail move(@PathVariable Long id, @Valid @RequestBody MoveTaskRequest req) {
+        Task task = findTask(id);
+        if (!columnRepository.existsById(req.columnId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Column not found");
+        }
+        Long oldColumnId = task.getColumnId();
+        List<Task> target = new ArrayList<>(taskRepository.findByColumnIdOrderByPositionAscIdAsc(req.columnId()));
+        target.removeIf(t -> t.getId().equals(id));
+        target.add(Math.min(req.position(), target.size()), task);
+        for (int i = 0; i < target.size(); i++) {
+            target.get(i).moveTo(req.columnId(), i + 1);
+        }
+        taskRepository.saveAll(target);
+        if (!oldColumnId.equals(req.columnId())) {
+            renumber(oldColumnId);
+        }
+        return toDetail(task);
+    }
+
+    private Task findTask(Long id) {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+    }
+
+    /** カラム内の position を 1..n に詰め直す。 */
+    private void renumber(Long columnId) {
+        List<Task> tasks = taskRepository.findByColumnIdOrderByPositionAscIdAsc(columnId);
+        for (int i = 0; i < tasks.size(); i++) {
+            tasks.get(i).moveTo(columnId, i + 1);
+        }
+        taskRepository.saveAll(tasks);
     }
 
     private static TaskDetail toDetail(Task t) {
