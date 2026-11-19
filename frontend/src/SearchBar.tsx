@@ -1,4 +1,4 @@
-import { EMPTY_SEARCH, hasSearch, type SearchParams } from './types'
+import { EMPTY_SEARCH, PRIORITIES, hasSearch, type SearchParams } from './types'
 
 const inputClass = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm'
 
@@ -34,9 +34,11 @@ export function SearchBar({
           onChange={(e) => set({ priority: e.target.value })}
         >
           <option value="">すべて</option>
-          <option value="1">高</option>
-          <option value="2">中</option>
-          <option value="3">低</option>
+          {PRIORITIES.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
         </select>
       </label>
       <label className="flex flex-col text-xs text-gray-600">

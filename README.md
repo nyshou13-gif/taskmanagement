@@ -96,9 +96,12 @@ scripts/stop-servers.ps1      # 停止（8080 と 5173 のみ対象）
 ## テスト・ビルド
 
 ```
-cd backend && ./gradlew test      # Docker が必要（Testcontainers で実PostgreSQLに接続）
+cd backend && ./gradlew check     # コンパイル警告(-Xlint)・Checkstyle・テスト。Docker が必要（Testcontainers で実PostgreSQLに接続）
+cd frontend && npm run lint       # Oxlint（React・hooks・アクセシビリティ・TypeScript）
 cd frontend && npm run build      # 型チェック + 本番ビルド
 ```
+
+品質チェックの観点は `.claude/skills/quality-check` にまとめている。
 
 フロントエンドのテスト（Vitest）は [#9](https://github.com/nyshou13-gif/taskmanagement/issues/9) で導入予定。
 
@@ -110,10 +113,10 @@ cd frontend && npm run build      # 型チェック + 本番ビルド
 | GET | /api/board | 全カラムとタスクを取得 | 実装済み |
 | GET | /api/tasks | タスク検索（キーワード・優先度・期限） | 実装済み |
 | GET | /api/tasks/:id | タスク1件取得 | 実装済み |
-| POST | /api/tasks | タスク作成 | 未実装 |
-| PATCH | /api/tasks/:id | タスク更新（内容・所属カラム・表示順） | 未実装 |
+| POST | /api/tasks | タスク作成 | 実装済み |
+| PATCH | /api/tasks/:id | タスク更新（内容・所属カラム・表示順。指定した項目のみ更新） | 実装済み |
 | DELETE | /api/tasks/:id | タスク削除（物理削除） | 実装済み |
-| POST | /api/columns/:id/sort | カラム内の並び替え | 未実装 |
+| POST | /api/columns/:id/sort | カラム内の並び替え（`by=priority` / `due_date`） | 実装済み |
 
 テーブル定義・API仕様の詳細は [データベース設計](docs/database.md) を参照。
 
@@ -122,7 +125,7 @@ cd frontend && npm run build      # 型チェック + 本番ビルド
 | ドキュメント | 内容 |
 |--------------|------|
 | [要件定義書](docs/requirements.md) | 概要・スコープ・非機能要件・ユースケース・拡張候補 |
-| [機能一覧](docs/features.md) | F1〜F6、タスクの項目、並び替えの方針 |
+| [機能一覧](docs/features.md) | F1〜F7、タスクの項目、並び替えの方針 |
 | [画面設計](docs/screens.md) | ボード画面・モーダル・バリデーション/エラー表示 |
 | [データベース設計](docs/database.md) | ER図・テーブル定義・API仕様 |
 | [技術スタック](docs/tech-stack.md) | 使用技術・バージョン・選定理由 |

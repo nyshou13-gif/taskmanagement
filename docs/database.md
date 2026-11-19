@@ -60,9 +60,15 @@ erDiagram
 | メソッド | エンドポイント | 内容 | 対応機能 |
 |----------|----------------|------|----------|
 | GET | /api/board | 全カラムとタスクを取得 | 初期表示 |
+| GET | /api/tasks | タスク検索（クエリ: `q` `priority` `dueBefore` `columnId`） | F7 |
+| GET | /api/tasks/:id | タスクを1件取得 | F7 |
 | POST | /api/tasks | タスクを新規作成（「未着手」カラムの末尾に追加） | F1 |
-| PATCH | /api/tasks/:id | タイトル・説明・優先度・期限・所属カラム・表示順を更新 | F2, F4 |
+| PATCH | /api/tasks/:id | タイトル・説明・優先度・期限・所属カラム・表示順を更新。**指定した項目だけ**を更新し、`dueDate: null` は期限のクリア。`columnId` / `position`（移動先カラム内の0始まりの位置。省略時は末尾）を指定すると移動し、移動元・移動先の `position` を振り直す | F2, F4 |
 | DELETE | /api/tasks/:id | タスクを削除 | F3 |
 | POST | /api/columns/:id/sort | カラム内のタスクを `by=priority` または `by=due_date` で並び替え、結果を `position` に保存（1回限り・安定ソート） | F5 |
+
+- 入力エラーは 400、存在しないタスクは 404、存在しないカラム指定は 400 を返す。エラー本文は RFC 9457 の ProblemDetail 形式。
+- 優先度の値は `1:低 / 2:中 / 3:高`。フロントエンドの表示・選択肢もこの値に合わせる。
+- `updated_at` はタスク更新時にサーバー側で更新する。
 
 （機能IDの詳細は [機能一覧](features.md) を参照）

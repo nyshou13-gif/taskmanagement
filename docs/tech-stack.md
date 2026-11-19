@@ -46,6 +46,8 @@ Next.js は今回の対象外とし、フロントエンドは Vite によるSPA
 
 | 項目 | 選定技術 | 選定理由 |
 |------|----------|----------|
+| フロントエンドlint | Oxlint（`npm run lint`） | typescript-eslint が TypeScript 7 に未対応のため、TypeScript 本体に依存しない Oxlint を採用。React・hooks・アクセシビリティ（jsx-a11y）・TypeScript のルールを検査する |
+| バックエンド静的チェック | Checkstyle ＋ javac `-Xlint:all -Werror`（`./gradlew check`） | 未使用import・波括弧省略・命名など定型的な逸脱と、javacの警告（serialVersionUID 不足など）を自動検出する |
 | バージョン管理 | Git + GitHub | 変更履歴を管理し、GitHub上のリモートリポジトリで共有できる。`feature/<番号>-<内容>` 形式のブランチで機能ごとに作業し、masterへはPull Requestでマージする運用に適している |
 
 ## 5. 構成と開発時のポイント
