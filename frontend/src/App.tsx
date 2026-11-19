@@ -105,6 +105,13 @@ export default function App() {
     setSelectedId(null)
   }
 
+  // 削除したタスクを画面から外す
+  const onDeleted = (id: number) => {
+    setColumns((prev) => prev.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== id) })))
+    setResults((prev) => prev && prev.filter((t) => t.id !== id))
+    setSelectedId(null)
+  }
+
   const selected = useMemo(() => {
     for (const c of columns) {
       const task = c.tasks.find((t) => t.id === selectedId)
@@ -230,6 +237,7 @@ export default function App() {
           columnId={selected.columnId}
           columns={columns}
           onSaved={onUpdated}
+          onDeleted={onDeleted}
           onClose={() => setSelectedId(null)}
         />
       )}

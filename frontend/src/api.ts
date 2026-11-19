@@ -49,3 +49,9 @@ export const updateTask = (id: number, task: NewTask) => sendJson<TaskDetail>(`/
 // DnD後の列・並び順（position は列内の0始まり）を保存する
 export const moveTask = (id: number, columnId: number, position: number) =>
   sendJson<TaskDetail>(`/api/tasks/${id}/move`, { columnId, position })
+
+// タスクを削除する（サーバー側は物理削除）
+export const deleteTask = async (id: number): Promise<void> => {
+  const r = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+}
