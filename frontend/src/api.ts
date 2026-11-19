@@ -1,19 +1,42 @@
-import type { Column, NewTask, SearchParams, TaskDetail } from './types'
+import type { Column, NewTask, SearchParams, SortKey, TaskDetail, TaskPatch } from './types'
 
-const getJson = async <T>(url: string, signal?: AbortSignal): Promise<T> => {
-  const r = await fetch(url, { signal })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return r.json()
+/** サーバーが 4xx / 5xx を返したときのエラー。 */
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(status: number) {
+    super(`HTTP ${status}`)
+    this.status = status
+  }
 }
 
-export const fetchBoard = (signal?: AbortSignal) => getJson<Column[]>('/api/board', signal)
+/** 画面上部のエラーバナーに表示する文言（画面設計書 5章）。 */
+export const describeError = (e: unknown): string =>
+  e instanceof ApiError
+    ? 'データの保存に失敗しました'
+    : 'サーバーとの通信に失敗しました。しばらくしてから再度お試しください'
+
+const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
+  const r = await fetch(url, init)
+  if (!r.ok) throw new ApiError(r.status)
+  return r.status === 204 ? (undefined as T) : ((await r.json()) as T)
+}
+
+const sendJson = <T>(method: string, url: string, body?: unknown) =>
+  request<T>(url, {
+    method,
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+
+export const fetchBoard = (signal?: AbortSignal) => request<Column[]>('/api/board', { signal })
 
 export const searchTasks = (params: SearchParams, signal?: AbortSignal) => {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
     if (value.trim() !== '') query.set(key, value.trim())
   }
-  return getJson<TaskDetail[]>(`/api/tasks?${query}`, signal)
+  return request<TaskDetail[]>(`/api/tasks?${query}`, { signal })
 }
 
 // 検索結果を columnId で各列へ振り分ける（空の列も残す）
@@ -23,35 +46,18 @@ export const groupByColumn = (columns: Column[], tasks: TaskDetail[]): Column[] 
     tasks: tasks.filter((t) => t.columnId === c.id).sort((a, b) => a.position - b.position),
   }))
 
-export const createTask = async (task: NewTask): Promise<TaskDetail> => {
-  const r = await fetch('/api/tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(task),
-  })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return r.json()
-}
+export const createTask = (task: NewTask) => sendJson<TaskDetail>('POST', '/api/tasks', task)
 
-const sendJson = async <T>(url: string, body: unknown): Promise<T> => {
-  const r = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return r.json()
-}
+// 項目の更新・カラム移動・並び替え（position は移動先カラム内の0始まり）を同じ PATCH で行う
+export const updateTask = (id: number, patch: TaskPatch) =>
+  sendJson<TaskDetail>('PATCH', `/api/tasks/${id}`, patch)
 
-// 詳細画面からの更新（columnId を変えるとステータス変更になる）
-export const updateTask = (id: number, task: NewTask) => sendJson<TaskDetail>(`/api/tasks/${id}`, task)
-
-// DnD後の列・並び順（position は列内の0始まり）を保存する
 export const moveTask = (id: number, columnId: number, position: number) =>
-  sendJson<TaskDetail>(`/api/tasks/${id}/move`, { columnId, position })
+  updateTask(id, { columnId, position })
 
 // タスクを削除する（サーバー側は物理削除）
-export const deleteTask = async (id: number): Promise<void> => {
-  const r = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-}
+export const deleteTask = (id: number) => sendJson<void>('DELETE', `/api/tasks/${id}`)
+
+// カラム内のタスクを1回だけ並べ直して保存する
+export const sortColumn = (columnId: number, by: SortKey) =>
+  sendJson<TaskDetail[]>('POST', `/api/columns/${columnId}/sort?by=${by}`)

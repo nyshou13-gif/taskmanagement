@@ -1,21 +1,17 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Task } from './types'
-
-const PRIORITY: Record<number, { label: string; className: string }> = {
-  1: { label: '高', className: 'bg-red-100 text-red-700' },
-  2: { label: '中', className: 'bg-yellow-100 text-yellow-700' },
-  3: { label: '低', className: 'bg-green-100 text-green-700' },
-}
+import { PRIORITIES, type Task } from './types'
 
 export function TaskCardView({ task, dragging }: { task: Task; dragging?: boolean }) {
-  const p = PRIORITY[task.priority]
+  const p = PRIORITIES.find((x) => x.value === task.priority)
   return (
     <div className={`rounded-md bg-white p-3 shadow-sm ${dragging ? 'rotate-2 shadow-lg' : ''}`}>
       <p className="break-words text-sm font-medium">{task.title}</p>
       <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-        {p && <span className={`rounded px-1.5 py-0.5 ${p.className}`}>{p.label}</span>}
-        <span>{task.dueDate ?? '期限なし'}</span>
+        {p && (
+          <span className={`rounded px-1.5 py-0.5 ${p.className}`}>優先度: {p.label}</span>
+        )}
+        <span>期限: {task.dueDate ?? 'なし'}</span>
       </div>
     </div>
   )
@@ -28,7 +24,7 @@ export function SortableTaskCard({
 }: {
   task: Task
   disabled?: boolean
-  onOpen?: (task: Task) => void
+  onOpen: (task: Task) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -41,7 +37,10 @@ export function SortableTaskCard({
       className={`${disabled ? '' : 'cursor-grab touch-none'} ${isDragging ? 'opacity-40' : ''}`}
       {...attributes}
       {...listeners}
-      onClick={() => onOpen?.(task)}
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(task)}
+      onKeyDown={(e) => e.key === 'Enter' && onOpen(task)}
     >
       <TaskCardView task={task} />
     </div>
