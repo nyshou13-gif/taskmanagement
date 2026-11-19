@@ -112,7 +112,7 @@ cd frontend && npm run build      # 型チェック + 本番ビルド
 | GET | /api/tasks/:id | タスク1件取得 | 実装済み |
 | POST | /api/tasks | タスク作成 | 未実装 |
 | PATCH | /api/tasks/:id | タスク更新（内容・所属カラム・表示順） | 未実装 |
-| DELETE | /api/tasks/:id | タスク削除 | 未実装 |
+| DELETE | /api/tasks/:id | タスク削除（物理削除） | 実装済み |
 | POST | /api/columns/:id/sort | カラム内の並び替え | 未実装 |
 
 テーブル定義・API仕様の詳細は [データベース設計](docs/database.md) を参照。

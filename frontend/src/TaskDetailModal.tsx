@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { updateTask } from './api'
+import { deleteTask, updateTask } from './api'
 import type { Column, Task, TaskDetail } from './types'
 
 const inputClass = 'w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm'
@@ -9,12 +9,14 @@ export function TaskDetailModal({
   columnId,
   columns,
   onSaved,
+  onDeleted,
   onClose,
 }: {
   task: Task
   columnId: number
   columns: Column[]
   onSaved: (task: TaskDetail) => void
+  onDeleted: (id: number) => void
   onClose: () => void
 }) {
   const [title, setTitle] = useState(task.title)
@@ -49,6 +51,18 @@ export function TaskDetailModal({
       onSaved(saved)
     } catch (err) {
       setError(`更新に失敗しました: ${err instanceof Error ? err.message : String(err)}`)
+      setSaving(false)
+    }
+  }
+
+  const remove = async () => {
+    if (!window.confirm(`「${task.title}」を削除しますか？この操作は元に戻せません。`)) return
+    setSaving(true)
+    try {
+      await deleteTask(task.id)
+      onDeleted(task.id)
+    } catch (err) {
+      setError(`削除に失敗しました: ${err instanceof Error ? err.message : String(err)}`)
       setSaving(false)
     }
   }
@@ -117,6 +131,14 @@ export function TaskDetailModal({
         </div>
         {error && <p className="text-xs text-red-600">{error}</p>}
         <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            className="mr-auto rounded border border-red-300 px-3 py-1 text-sm text-red-600 disabled:opacity-40"
+            disabled={saving}
+            onClick={remove}
+          >
+            削除
+          </button>
           <button type="button" className="rounded border border-gray-300 px-3 py-1 text-sm" onClick={onClose}>
             キャンセル
           </button>

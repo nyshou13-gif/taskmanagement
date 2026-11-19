@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -129,6 +130,18 @@ public class TaskController {
             renumber(oldColumnId);
         }
         return toDetail(task);
+    }
+
+    /** タスクを物理削除し、同じカラムの position を詰め直す。 */
+    @DeleteMapping("/api/tasks/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void delete(@PathVariable Long id) {
+        Task task = findTask(id);
+        Long columnId = task.getColumnId();
+        taskRepository.delete(task);
+        taskRepository.flush();
+        renumber(columnId);
     }
 
     private Task findTask(Long id) {
