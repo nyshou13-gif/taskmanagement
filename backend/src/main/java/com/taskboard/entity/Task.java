@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -39,7 +40,7 @@ public class Task {
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
+    @Column(name = "updated_at", nullable = false, insertable = false)
     private LocalDateTime updatedAt;
 
     protected Task() {
@@ -65,6 +66,11 @@ public class Task {
     public void moveTo(Long columnId, int position) {
         this.columnId = columnId;
         this.position = position;
+    }
+
+    @PreUpdate
+    void touch() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
